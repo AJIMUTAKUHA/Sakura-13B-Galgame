@@ -66,14 +66,18 @@ def get_stream_output(data: OpenAIChatCompletionRequest):
     src_text = data.messages[-1]['content'].replace("将下面的日文文本翻译成中文：", "")
     generation_config.__dict__['src_text'] = src_text
     final_output = ""
+    tempcache_idx0 = ""
     for idx, (output, finish_reason) in enumerate(model.completion_stream(data.messages, generation_config)):
         final_output += output
         try:
-            if idx == -100:
+            if idx == 0:
+                tempcache_idx0 = output
                 message = OpenAIChatCompletionStreamResponse.Choice.Message(role="assistant")
             elif finish_reason:
                 message = OpenAIChatCompletionStreamResponse.Choice.Message()
             else:
+                if idx == 1:
+                    output = tempcache_idx0 + output
                 message = OpenAIChatCompletionStreamResponse.Choice.Message(content=output)
             yield message, OpenAIChatCompletionStreamResponse(
                 id="114514",
